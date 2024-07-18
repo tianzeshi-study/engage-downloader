@@ -14,6 +14,7 @@ file_name = parsed_url.path.split("/")[-1]
 # 获取文件大小
 def get_file_size(url):
     req = urllib.request.Request(url, method='HEAD')
+    import pdb;pdb.set_trace();
     with urllib.request.urlopen(req) as response:
         return int(response.getheader('Content-Length'))
 
@@ -21,6 +22,7 @@ def get_file_size(url):
 def download_chunk(url, start, end, chunk_number, progress, lock):
     req = urllib.request.Request(url)
     req.headers['Range'] = f'bytes={start}-{end}'
+    # print(req.headers)
     with urllib.request.urlopen(req) as response:
         with open(f'{file_name}.part{chunk_number}', 'wb') as f:
             while True:
