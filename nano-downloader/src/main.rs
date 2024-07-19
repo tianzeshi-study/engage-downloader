@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::fs::File;
 use std::io::{self, Seek, Write, BufRead};
 use std::sync::Arc;
@@ -9,11 +10,12 @@ const CHUNK_SIZE: u64 = 1024 * 1024; // 1MB
 const NUM_THREADS: usize = 4;
 
 #[tokio::main]
-async fn main_download(url: String) -> Result<(), Box<dyn std::error::Error>> {
+async fn main_download(url: String, file_name_str: &str) -> Result<(), Box<dyn std::error::Error>> {
     // 从标准输入获取URL
     // let mut url = get_url_from_input()?;
     // let url_arc = Arc::new(url); // 假设 url 是需要共享的数据                                        
-    let filename = "downloaded_file";
+    // let filename = "downloaded_file";
+    let filename = file_name_str;
     
     // 创建HTTP客户端
     let client = Client::new();
@@ -115,12 +117,25 @@ fn main() {
             
             // 可以将 url_string 传递给需要使用的地方
             // let _ = main_download(url_string);
-            match main_download(url_string) {
+            // let url_str = &url_string.as_str(); // 提前借用 &str
+            // let url_string1 = url_string;
+            let url_string1 = url_string.clone(); // 复制 url_string
+            let path = Path::new(url_string1.as_str());
+            if let Some(file_name) = path.file_name() {
+        if let Some(file_name_str) = file_name.to_str() {
+            println!("文件名: {}", file_name_str);
+
+            match main_download(url_string, file_name_str) {
     Ok(_) => println!("Download succeeded"),
     Err(e) => eprintln!("Download failed: {}", e),
 }
 
-
+        } else {
+            println!("无法转换文件名为字符串");
+        }
+    } else {
+        println!("没有文件名");
+    }
         },
         Err(err) => {
             // 处理错误，这里简单地打印出错误信息
