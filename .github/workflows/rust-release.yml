@@ -1,0 +1,70 @@
+name: Rust Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # 触发条件：推送符合版本号格式的标签
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }} # 运行在矩阵定义的操作系统上
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest] # 支持的操作系统
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2 # 检出代码
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1 # 安装 Rust 工具链
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - name: Build main.rs
+      run: rustc main.rs # 编译 main.rs 文件
+
+    - name: Build nano-downloader
+      run: |
+        cd nano-downloader
+        cargo build # 编译 nano-downloader 项目
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2 # 上传构建产物
+      with:
+        name: nano-downloader
+        path: nano-downloader/target
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest # 在 Ubuntu 上运行
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2 # 检出代码
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1 # 创建 GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub 密钥
+      with:
+        tag_name: ${{ github.ref }} # 标签名
+        release_name: Release ${{ github.ref }} # 发布名称
+        draft: false
+        prerelease: false
+
+    - name: Zip the build artifacts
+      run: |
+        cd nano-downloader/target
+        zip -r nano-downloader.zip * # 将构建产物打包为 zip 文件
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1 # 上传 Release 资源
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 使用 GitHub 密钥
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # 上传 URL
+        asset_path: nano-downloader/target/nano-downloader.zip # 资源路径
+        asset_name: nano-downloader.zip # 资源名称
+        asset_content_type: application/zip # 资源类型
