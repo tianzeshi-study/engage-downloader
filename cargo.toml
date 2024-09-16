@@ -1,0 +1,25 @@
+[workspace]
+# 使用新的解析器来防止 dev-deps 和 build-deps 在生产中启用调试或测试功能。
+members = ["nano-downloader"]
+resolver = "2"
+
+exclude = ["version-compatibility"]
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "unwind"
+
+[workspace.package]
+authors = ["articode"]
+categories = ["concurrency"]
+edition = "2021"
+homepage = "https://fuel.network/"
+keywords = ["async"]
+license = "mit"
+repository = "https://github.com/tianzeshi-study/engage-downloader"
+version = "0.0.1"
+
+[workspace.dependencies]
+# Workspace members
+nano-downloader = { version = "0.0.1", path = "./nano-downloader"}

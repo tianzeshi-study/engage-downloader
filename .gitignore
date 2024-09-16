@@ -1,2 +1,7 @@
+target/
 **/target/
 **/build/
+**/*.whl
+**/*.so
+nano_python
+**/*.back*
